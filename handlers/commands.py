@@ -25,6 +25,11 @@ async def command_help(message: types.Message):
 
 @dp.message_handler(Command('add'))
 async def command_add(message: types.Message):
+    city = message.text.split()[1:]
+    if not city:
+        return await message.reply('<i>Чтобы добавить город попробуй так:\n'
+                                   '/add название города</i>')
+
     count = await db.limit_3_cities(message.from_user.id)
     if count >= 3:
         text = '⛔\nК сожалению, у меня ограничение 😔\n' \
@@ -34,12 +39,6 @@ async def command_add(message: types.Message):
                '/delete <i>название города</i>'
         return await message.reply(text)
 
-    try:
-        city = message.text.split()[1:]
-    except IndexError:
-        return await message.reply('<i>Чтобы добавить город попробуй так:\n'
-                                   '/add название города</i>')
-
     if await db.add_city(city=city, telegram_id=message.from_user.id):
         return await message.reply('⛔ Этот город уже есть в твоем списке ⛔')
 
@@ -48,12 +47,10 @@ async def command_add(message: types.Message):
 
 @dp.message_handler(Command('delete'))
 async def command_delete(message: types.Message):
-    try:
-        city = message.text.split()[1:]
-    except IndexError:
-        await message.reply('<i>Чтобы удалить город попробуй так:\n'
-                            '/delete название города</i>')
-        return
+    city = message.text.split()[1:]
+    if not city:
+        return await message.reply('<i>Чтобы удалить город попробуй так:\n'
+                                   '/delete название города</i>')
 
     city = ' '.join(city).title()
     user_cities = await db.select_users_city(telegram_id=message.from_user.id)
@@ -62,7 +59,6 @@ async def command_delete(message: types.Message):
         return await message.reply('⛔ Этого города нет в твоем списке ⛔\n'
                                    'Проверить список своих городов 👉 /cities')
     await db.delete_city(city)
-
     count = await db.limit_3_cities(message.from_user.id)
     await message.reply(f'Город был удален из списка! Осталось свободных ячеек: {3 - int(count)}')
 
@@ -70,6 +66,12 @@ async def command_delete(message: types.Message):
 @dp.message_handler(Command('cities'))
 async def command_cities(message: types.Message):
     cities = await db.select_users_city(message.from_user.id)
+    if not cities:
+        text = "\n".join([
+            f'У тебя еще нет городов в списке 😞',
+            f'Ты можешь добавить в свой спикок город с помощью команды:',
+            f'/add <i>название города</i>'])
+        return await message.answer(text=text)
     await message.answer('Твои города: \n{}'.format("\n".join(cities)), reply_markup=cities_keyboard)
 
 

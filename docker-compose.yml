@@ -2,9 +2,12 @@ version: '3.1'
 
 services:
   db:
+    # ВНИМАТЕЛЬНО! ВОТ ЭТО НАЗВАНИЕ СЕРВИСА - db - ДОЛЖНО БЫТЬ УКАЗАНО В БОТЕ КАК host В ПОДКЛЮЧЕНИИ К БАЗЕ ИЗ БОТА
+    # ТО ЕСТЬ НЕ АЙПИШНИК И НЕ ЛОКАЛХОСТ, А db
+    # DB_HOST: db
     container_name: database
     image: sameersbn/postgresql:10-2
-     env_file:
+    env_file:
        - ".env"
     environment:
       DB_PASS: $DB_PASS
